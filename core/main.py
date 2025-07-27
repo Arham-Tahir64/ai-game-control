@@ -7,5 +7,5 @@ frame = capture_screen()
 flash = detect_red_flash(frame)
 ocr = extract_text_from_frame(frame)
 
-print(f"[OCR] {ocr}")
+print(f"[Ammo Count] {ocr}")
 print(f"[Flash] {flash}")
