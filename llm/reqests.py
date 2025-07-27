@@ -2,9 +2,9 @@ import requests
 
 # Sample game data from your OCR + flash pipeline
 ammo = 30
-flash_level = "HIGH"  # could also be MEDIUM or LOW
+flash_level = "LOW"  # could also be MEDIUM or LOW
 kill_count = 1
-caption = "eliminated enemy with SMG"  # Optional: from future vision model or log parser
+caption = "Walking around"  # Optional: from future vision model or log parser
 
 # LM Studio API endpoint
 url = "http://127.0.0.1:1234/v1/chat/completions"
@@ -42,8 +42,9 @@ data = response.json()
 classification = data["choices"][0]["message"]["content"].strip().lower()
 print("🧠 Combat status:", classification)
 
-# Example Spotify logic hook
-if classification == "combat":
-    print("Lower volume")
-elif classification == "no_combat":
-    print("Raise volume")
+# Basic Spotify logic hook
+def combat_status(classification):
+    if classification == "combat":
+        return True
+    elif classification == "no_combat":
+        return False

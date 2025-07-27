@@ -2,6 +2,9 @@ import spotipy
 import os
 from dotenv import load_dotenv 
 import spotipy.oauth2 as spotOauth
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from llm.reqests import combat_status, classification
 
 load_dotenv()
 
@@ -19,4 +22,15 @@ if current and current['is_playing']:
 else:
     print("Nothing is currently playing.")
 
+    
+# Volume logic
+status = combat_status(classification)
 
+if status is True:
+    print("Turn volume down")
+    sp.volume(0)
+elif status is False:
+    print("Turn volume up")
+    sp.volume(100)
+else:
+    print("Unrecognized classification, no volume change.")
