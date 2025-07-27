@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-def detect_red_flash(frame, red_threshold=160):
+def detect_red_flash(frame, red_threshold=100):
     # Extract red channel
     red_channel = frame[:, :, 2]  # BGR format
 
