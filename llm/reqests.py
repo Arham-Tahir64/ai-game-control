@@ -1,10 +1,13 @@
 import requests
+from vision.flash_detector import detect_red_flash
+from vision.ocr_engine import extract_ammo_count
+import cv2
 
-# Sample game data from your OCR + flash pipeline
-ammo = 30
-flash_level = "LOW"  # could also be MEDIUM or LOW
-kill_count = 1
-caption = "Walking around"  # Optional: from future vision model or log parser
+frame = cv2.imread("cod_ss4.png")
+ammo = extract_ammo_count(frame)
+flash_level = detect_red_flash(frame)
+kill_count = 2
+caption = "Walking around"
 
 # LM Studio API endpoint
 url = "http://127.0.0.1:1234/v1/chat/completions"
