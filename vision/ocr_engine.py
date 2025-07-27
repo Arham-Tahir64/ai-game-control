@@ -1,12 +1,28 @@
-import pytesseract
 import cv2
+import pytesseract
+import re
 
-def extract_text_from_frame(frame):
-    # Convert to grayscale and threshold
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY)
+def extract_ammo_count(frame):
+    # Crop to the bottom right ammo HUD
+    ammo_crop = frame[602:635, 940:990]
 
-    # Run Tesseract OCR
-    custom_config = r'--oem 3 --psm 6'
-    text = pytesseract.image_to_string(thresh, config=custom_config)
-    return text.strip()
+    # Convert to grayscale
+    gray = cv2.cvtColor(ammo_crop, cv2.COLOR_BGR2GRAY)
+
+    # Resize to help OCR
+    resized = cv2.resize(gray, None, fx=5, fy=5, interpolation=cv2.INTER_CUBIC)
+
+    # Threshold to improve contrast
+    _, thresh = cv2.threshold(resized, 140, 255, cv2.THRESH_BINARY_INV)
+
+    # OCR configuration (only digits)
+    config = r'--oem 3 --psm 7 -c tessedit_char_whitelist=0123456789'
+    ocr_result = pytesseract.image_to_string(thresh, config=config)
+
+    # Extract digits
+    match = re.search(r'\d+', ocr_result)
+    if match:
+        ammo = int(match.group())
+        return ammo
+    else:
+        return None
