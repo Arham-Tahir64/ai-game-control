@@ -1,13 +1,11 @@
 from capture.screenshot import capture_screen
-import time
-import cv2
+from vision.flash_detector import detect_red_flash
+from vision.ocr_engine import extract_text_from_frame
 
-print("Starting screen capture... Press Ctrl+C to stop.")
-try:
-    while True:
-        frame = capture_screen(show_preview=True)
-        time.sleep(2)  # capture every 2 seconds
+frame = capture_screen()
 
-except KeyboardInterrupt:
-    print("\nStopped.")
-    cv2.destroyAllWindows()
+flash = detect_red_flash(frame)
+ocr = extract_text_from_frame(frame)
+
+print(f"[OCR] {ocr}")
+print(f"[Flash] {flash}")
