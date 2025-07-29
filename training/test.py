@@ -1,37 +1,58 @@
 import cv2
+import mss
+import numpy as np
 from ultralytics import YOLO
+import time
+import os
 
-# 1. Load model & open input
+
+# Load model
 model = YOLO('runs/detect/bo6_enemy_local11/weights/best.pt')
-cap   = cv2.VideoCapture('test_images/test.mp4')
 
-# 2. Prepare VideoWriter
-fps    = cap.get(cv2.CAP_PROP_FPS)
-w      = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-h      = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-fourcc = cv2.VideoWriter_fourcc(*'mp4v')                   # or 'XVID','H264' etc.
-out    = cv2.VideoWriter('gameplay_with_detections.mp4', fourcc, fps, (w, h))
+# Capture live gameplay
+def capture_screen(monitor_index=2):
+    with mss.mss() as sct:
+        mon = sct.monitors[monitor_index]
+        img = np.array(sct.grab(mon))
+    return cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
 
+# Convert fram cv2 compatible
 def process_frame(frame):
-    results = model(frame, imgsz=640)[0]
+    results = model(frame, imgsz=640, verbose=False)[0]
     for box in results.boxes:
         x1, y1, x2, y2 = map(int, box.xyxy[0])
-        conf   = box.conf[0].item()
-        cls_id = int(box.cls[0].item())
-        label  = model.names[cls_id]
+        conf = box.conf[0].item()
+        cls  = int(box.cls[0].item())
+        label = model.names[cls]
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0,255,0), 2)
         cv2.putText(frame, f'{label} {conf:.2f}', (x1, y1-10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 2)
     return frame
 
-# 3. Read, process, write
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
-    annotated = process_frame(frame)
-    out.write(annotated)        # write to output file
+def main():
+    GAME_MON = 2    # Monitor number to display
 
-cap.release()
-out.release()
-print("Saved ➜ gameplay_with_detections.mp4")
+    cv2.namedWindow('Live Detections', cv2.WINDOW_NORMAL)
+
+    # 15 fps
+    target_fps = 15
+    delay      = 1.0 / target_fps
+
+    # Main loop
+    while True:
+        start = time.time()
+        frame = capture_screen(GAME_MON)
+        annotated = process_frame(frame)
+        cv2.imshow('Live Detections', annotated)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+        elapsed = time.time() - start
+        if elapsed < delay:
+            time.sleep(delay - elapsed)
+
+    cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    main()
